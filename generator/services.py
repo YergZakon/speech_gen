@@ -71,16 +71,23 @@ def generate_speech(data: dict) -> str:
     # Формируем информацию о расчёте
     calc_info = ""
     if calculated_sentence:
+        stage_names = {'completed': 'Оконченное', 'attempt': 'Покушение', 'preparation': 'Приготовление'}
+        stage_display = stage_names.get(calculation_params.get('stage'), 'Оконченное')
+        mitigating_display = 'Да' if calculation_params.get('mitigating') else 'Нет'
+        aggravating_display = 'Да' if calculation_params.get('aggravating') else 'Нет'
+        minor_display = 'Да' if calculation_params.get('isMinor') else 'Нет'
+        agreement_display = 'Да' if calculation_params.get('agreement') else 'Нет'
+
         calc_info = f"""
 
 РАССЧИТАННЫЙ СРОК НАКАЗАНИЯ: {calculated_sentence}
 
 Параметры расчёта по ст. 188 ч.3 УК РК:
-- Смягчающие обстоятельства: {'Да' if calculation_params.get('mitigating') else 'Нет'}
-- Отягчающие обстоятельства: {'Да' if calculation_params.get('aggravating') else 'Нет'}
-- Несовершеннолетний: {'Да' if calculation_params.get('isMinor') else 'Нет'}
-- Стадия: {{'completed': 'Оконченное', 'attempt': 'Покушение', 'preparation': 'Приготовление'}.get(calculation_params.get('stage'), 'Оконченное')}
-- УДР/Процессуальное соглашение: {'Да' if calculation_params.get('agreement') else 'Нет'}
+- Смягчающие обстоятельства: {mitigating_display}
+- Отягчающие обстоятельства: {aggravating_display}
+- Несовершеннолетний: {minor_display}
+- Стадия: {stage_display}
+- УДР/Процессуальное соглашение: {agreement_display}
 
 ВАЖНО: В заключительной части речи ОБЯЗАТЕЛЬНО укажи именно этот рассчитанный срок наказания: {calculated_sentence}"""
 

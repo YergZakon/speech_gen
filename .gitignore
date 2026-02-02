@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+venv/
+myenv/
+.env
+*.egg-info/
+
+# Django
+*.log
+staticfiles/
+db.sqlite3
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Streamlit (старые файлы)
+.streamlit/
+
+# OS
+.DS_Store
+Thumbs.db

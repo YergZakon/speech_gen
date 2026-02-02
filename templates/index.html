@@ -1,0 +1,99 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор речи гособвинителя</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚖️ Генератор речи гособвинителя</h1>
+            <p class="subtitle">На основе обвинительного акта</p>
+        </header>
+
+        <main>
+            <!-- Шаг 1: Загрузка файла -->
+            <section id="upload-section" class="card">
+                <h2>📄 Загрузите обвинительный акт</h2>
+                <div class="upload-area" id="upload-area">
+                    <input type="file" id="file-input" accept=".txt" hidden>
+                    <div class="upload-content">
+                        <span class="upload-icon">📁</span>
+                        <p>Перетащите файл сюда или <span class="link">выберите</span></p>
+                        <small>Поддерживается формат .txt</small>
+                    </div>
+                </div>
+                <div id="file-name" class="file-name hidden"></div>
+            </section>
+
+            <!-- Шаг 2: Извлеченная информация -->
+            <section id="info-section" class="card hidden">
+                <h2>📊 Извлеченная информация</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>ФИО</label>
+                        <span id="info-fio">—</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Дата</label>
+                        <span id="info-date">—</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Статья</label>
+                        <span id="info-article">—</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Судимости</label>
+                        <span id="info-convictions">—</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Ущерб</label>
+                        <span id="info-damage">—</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Смягчающие</label>
+                        <span id="info-mitigating">—</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Отягчающие</label>
+                        <span id="info-aggravating">—</span>
+                    </div>
+                    <div class="info-item full-width">
+                        <label>Обстоятельства</label>
+                        <span id="info-circumstances">—</span>
+                    </div>
+                </div>
+                <button id="generate-btn" class="btn primary">🎤 Сгенерировать речь</button>
+            </section>
+
+            <!-- Шаг 3: Результат -->
+            <section id="result-section" class="card hidden">
+                <h2>📜 Обвинительная речь</h2>
+                <div id="speech-content" class="speech-content"></div>
+                <div class="actions">
+                    <button id="copy-btn" class="btn secondary">📋 Копировать</button>
+                    <button id="new-btn" class="btn outline">🔄 Новый документ</button>
+                </div>
+            </section>
+
+            <!-- Загрузка -->
+            <div id="loader" class="loader hidden">
+                <div class="spinner"></div>
+                <p id="loader-text">Обработка...</p>
+            </div>
+        </main>
+
+        <footer>
+            <p>Создано для юридических специалистов Казахстана</p>
+        </footer>
+    </div>
+
+    <script>
+        const csrfToken = '{{ csrf_token }}';
+    </script>
+    <script src="{% static 'js/app.js' %}"></script>
+</body>
+</html>

@@ -117,6 +117,91 @@
                             <span id="info-circumstances">—</span>
                         </div>
                     </div>
+                </div>
+
+                <!-- Параметры расчёта наказания -->
+                <div id="calc-section" class="card hidden">
+                    <h2>⚙️ Параметры расчёта наказания</h2>
+                    <p class="calc-note">Укажите параметры для расчёта срока наказания по ст. 188 ч.3 УК РК</p>
+
+                    <div class="calc-grid">
+                        <div class="calc-row">
+                            <label>Смягчающие обстоятельства</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="mitigating" value="yes" id="mitigating-yes">
+                                    <span>Да</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="mitigating" value="no" id="mitigating-no" checked>
+                                    <span>Нет</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="calc-row">
+                            <label>Отягчающие обстоятельства</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="aggravating" value="yes" id="aggravating-yes">
+                                    <span>Да</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="aggravating" value="no" id="aggravating-no" checked>
+                                    <span>Нет</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="calc-row">
+                            <label>Несовершеннолетний</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="minor" value="yes" id="minor-yes">
+                                    <span>Да</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="minor" value="no" id="minor-no" checked>
+                                    <span>Нет</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="calc-row">
+                            <label>Стадия преступления</label>
+                            <div class="select-wrapper">
+                                <select id="stage-select">
+                                    <option value="completed">Оконченное</option>
+                                    <option value="attempt">Покушение</option>
+                                    <option value="preparation">Приготовление</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="calc-row">
+                            <label>УДР / Процессуальное соглашение</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="agreement" value="yes" id="agreement-yes">
+                                    <span>Да</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="agreement" value="no" id="agreement-no" checked>
+                                    <span>Нет</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="calc-result">
+                        <div class="calc-formula" id="calc-formula">
+                            Формула: 7 лет = <strong>7 лет</strong>
+                        </div>
+                        <div class="calc-sentence">
+                            Рекомендуемый срок: <span id="calc-sentence">7 лет</span>
+                        </div>
+                    </div>
+
                     <button id="generate-btn" class="btn primary">🎤 Сгенерировать речь</button>
                 </div>
 

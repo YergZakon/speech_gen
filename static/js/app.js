@@ -31,6 +31,7 @@ const uploadArea = document.getElementById('upload-area');
 const fileInput = document.getElementById('file-input');
 const fileNameEl = document.getElementById('file-name');
 const infoSection = document.getElementById('info-section');
+const calcSection = document.getElementById('calc-section');
 const resultSection = document.getElementById('result-section');
 const generateBtn = document.getElementById('generate-btn');
 const copyBtn = document.getElementById('copy-btn');
@@ -40,24 +41,102 @@ const loaderText = document.getElementById('loader-text');
 const speechContent = document.getElementById('speech-content');
 
 let extractedData = null;
+let calculatedSentence = null;
 
 // Навигация
 document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', (e) => {
         e.preventDefault();
         const section = item.dataset.section;
-
-        // Обновляем активный пункт меню
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         item.classList.add('active');
-
-        // Показываем нужную секцию
         document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
         document.getElementById(`section-${section}`).classList.add('active');
     });
 });
 
-// Инициализация мок данных
+// ========== КАЛЬКУЛЯТОР НАКАЗАНИЯ ==========
+
+function calculateSentence() {
+    const mitigating = document.querySelector('input[name="mitigating"]:checked')?.value === 'yes';
+    const aggravating = document.querySelector('input[name="aggravating"]:checked')?.value === 'yes';
+    const isMinor = document.querySelector('input[name="minor"]:checked')?.value === 'yes';
+    const stage = document.getElementById('stage-select')?.value || 'completed';
+    const agreement = document.querySelector('input[name="agreement"]:checked')?.value === 'yes';
+
+    // Базовый срок: 7 лет для взрослых, 6 лет для несовершеннолетних
+    let baseYears = isMinor ? 6 : 7;
+    let formula = `${baseYears} лет`;
+    let result = baseYears;
+
+    // Применение ст. 55 УК РК (смягчающие без отягчающих)
+    if (mitigating && !aggravating) {
+        result = result * 2 / 3;
+        formula = `${baseYears} лет × 2/3`;
+    }
+
+    // Стадия преступления
+    if (stage === 'attempt') {
+        result = result * 3 / 4;
+        formula += ` × 3/4 (покушение)`;
+    } else if (stage === 'preparation') {
+        result = result * 1 / 2;
+        formula += ` × 1/2 (приготовление)`;
+    }
+
+    // УДР / Процессуальное соглашение
+    if (agreement) {
+        result = result / 2;
+        formula += ` ÷ 2 (УДР/соглашение)`;
+    }
+
+    // Форматирование результата
+    const years = Math.floor(result);
+    const months = Math.round((result - years) * 12);
+
+    let sentenceText = '';
+    if (years > 0) {
+        sentenceText += `${years} ${pluralize(years, 'год', 'года', 'лет')}`;
+    }
+    if (months > 0) {
+        if (sentenceText) sentenceText += ' ';
+        sentenceText += `${months} ${pluralize(months, 'месяц', 'месяца', 'месяцев')}`;
+    }
+    if (!sentenceText) sentenceText = 'менее 1 месяца';
+
+    // Обновление UI
+    const formulaEl = document.getElementById('calc-formula');
+    const sentenceEl = document.getElementById('calc-sentence');
+
+    if (formulaEl) formulaEl.innerHTML = `Формула: ${formula} = <strong>${sentenceText}</strong>`;
+    if (sentenceEl) sentenceEl.textContent = sentenceText;
+
+    // Сохраняем для передачи в генератор
+    calculatedSentence = {
+        sentence: sentenceText,
+        formula: formula,
+        params: { mitigating, aggravating, isMinor, stage, agreement }
+    };
+
+    return calculatedSentence;
+}
+
+function pluralize(n, one, few, many) {
+    if (n % 10 === 1 && n % 100 !== 11) return one;
+    if (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) return few;
+    return many;
+}
+
+// Слушатели изменений параметров калькулятора
+function initCalcListeners() {
+    const inputs = document.querySelectorAll('#calc-section input, #calc-section select');
+    inputs.forEach(input => {
+        input.addEventListener('change', calculateSentence);
+    });
+}
+
+// ========== РЕНДЕРИНГ МОК ДАННЫХ ==========
+
 function initMockData() {
     renderNormativeResolutions();
     renderVerdicts();
@@ -68,6 +147,7 @@ function initMockData() {
 
 function renderNormativeResolutions() {
     const container = document.getElementById('normative-list');
+    if (!container) return;
     container.innerHTML = mockData.normative_resolutions.map(item => `
         <div class="document-card">
             <div class="doc-header">
@@ -83,6 +163,7 @@ function renderNormativeResolutions() {
 
 function renderVerdicts() {
     const tbody = document.querySelector('#verdicts-table tbody');
+    if (!tbody) return;
     tbody.innerHTML = mockData.verdicts.map(item => `
         <tr>
             <td>${item.case_number}</td>
@@ -97,6 +178,7 @@ function renderVerdicts() {
 
 function renderPrivateRulings() {
     const container = document.getElementById('private-list');
+    if (!container) return;
     container.innerHTML = mockData.private_rulings.map(item => `
         <div class="document-card">
             <div class="doc-header">
@@ -113,6 +195,7 @@ function renderPrivateRulings() {
 
 function renderAcquittals() {
     const tbody = document.querySelector('#acquittals-table tbody');
+    if (!tbody) return;
     tbody.innerHTML = mockData.acquittals.map(item => `
         <tr>
             <td>${item.case_number}</td>
@@ -128,6 +211,7 @@ function renderAcquittals() {
 
 function renderReturns() {
     const tbody = document.querySelector('#returns-table tbody');
+    if (!tbody) return;
     tbody.innerHTML = mockData.case_returns.map(item => `
         <tr>
             <td>${item.case_number}</td>
@@ -145,32 +229,36 @@ function formatDate(dateStr) {
     return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-// Drag & Drop
-uploadArea.addEventListener('click', () => fileInput.click());
+// ========== ЗАГРУЗКА ФАЙЛА ==========
 
-uploadArea.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    uploadArea.classList.add('dragover');
-});
+if (uploadArea) {
+    uploadArea.addEventListener('click', () => fileInput.click());
 
-uploadArea.addEventListener('dragleave', () => {
-    uploadArea.classList.remove('dragover');
-});
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
 
-uploadArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadArea.classList.remove('dragover');
-    const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
-});
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
 
-fileInput.addEventListener('change', () => {
-    if (fileInput.files[0]) {
-        handleFile(fileInput.files[0]);
-    }
-});
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file) handleFile(file);
+    });
+}
 
-// Обработка файла
+if (fileInput) {
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files[0]) {
+            handleFile(fileInput.files[0]);
+        }
+    });
+}
+
 async function handleFile(file) {
     if (!file.name.endsWith('.txt')) {
         showToast('Поддерживается только формат .txt');
@@ -198,6 +286,16 @@ async function handleFile(file) {
             extractedData = result.data;
             displayInfo(result.data);
             infoSection.classList.remove('hidden');
+            calcSection.classList.remove('hidden');
+
+            // Автозаполнение параметров из извлечённых данных
+            autoFillCalcParams(result.data);
+
+            // Инициализация слушателей калькулятора
+            initCalcListeners();
+
+            // Первый расчёт
+            calculateSentence();
         } else {
             showToast(result.error || 'Ошибка анализа');
         }
@@ -219,59 +317,100 @@ function displayInfo(data) {
     document.getElementById('info-circumstances').textContent = data.circumstances || '—';
 }
 
-// Генерация речи
-generateBtn.addEventListener('click', async () => {
-    if (!extractedData) return;
+function autoFillCalcParams(data) {
+    // Автоматическое определение смягчающих/отягчающих из текста
+    const mitigating = data.mitigating && data.mitigating.toLowerCase() !== 'не установлены' && data.mitigating !== '—';
+    const aggravating = data.aggravating && data.aggravating.toLowerCase() !== 'не установлены' && data.aggravating !== '—';
 
-    showLoader('Генерирую речь...');
+    if (mitigating) {
+        const el = document.getElementById('mitigating-yes');
+        if (el) el.checked = true;
+    }
+    if (aggravating) {
+        const el = document.getElementById('aggravating-yes');
+        if (el) el.checked = true;
+    }
+}
 
-    try {
-        const response = await fetch('/generate/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify(extractedData)
-        });
+// ========== ГЕНЕРАЦИЯ РЕЧИ ==========
 
-        const result = await response.json();
+if (generateBtn) {
+    generateBtn.addEventListener('click', async () => {
+        if (!extractedData) return;
 
-        if (result.success) {
-            speechContent.textContent = result.speech;
-            resultSection.classList.remove('hidden');
-            resultSection.scrollIntoView({ behavior: 'smooth' });
-        } else {
-            showToast(result.error || 'Ошибка генерации');
+        // Получаем актуальный расчёт
+        const sentenceData = calculateSentence();
+
+        showLoader('Генерирую речь...');
+
+        try {
+            const dataToSend = {
+                ...extractedData,
+                calculated_sentence: sentenceData.sentence,
+                calculation_params: sentenceData.params
+            };
+
+            const response = await fetch('/generate/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify(dataToSend)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                speechContent.textContent = result.speech;
+                resultSection.classList.remove('hidden');
+                resultSection.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                showToast(result.error || 'Ошибка генерации');
+            }
+        } catch (error) {
+            showToast('Ошибка соединения');
         }
-    } catch (error) {
-        showToast('Ошибка соединения');
-    }
 
-    hideLoader();
-});
+        hideLoader();
+    });
+}
 
-// Копирование
-copyBtn.addEventListener('click', async () => {
-    try {
-        await navigator.clipboard.writeText(speechContent.textContent);
-        showToast('Скопировано!');
-    } catch {
-        showToast('Ошибка копирования');
-    }
-});
+// ========== КОПИРОВАНИЕ И СБРОС ==========
 
-// Новый документ
-newBtn.addEventListener('click', () => {
-    fileInput.value = '';
-    fileNameEl.classList.add('hidden');
-    infoSection.classList.add('hidden');
-    resultSection.classList.add('hidden');
-    extractedData = null;
-    speechContent.textContent = '';
-});
+if (copyBtn) {
+    copyBtn.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(speechContent.textContent);
+            showToast('Скопировано!');
+        } catch {
+            showToast('Ошибка копирования');
+        }
+    });
+}
 
-// Вспомогательные функции
+if (newBtn) {
+    newBtn.addEventListener('click', () => {
+        fileInput.value = '';
+        fileNameEl.classList.add('hidden');
+        infoSection.classList.add('hidden');
+        calcSection.classList.add('hidden');
+        resultSection.classList.add('hidden');
+        extractedData = null;
+        calculatedSentence = null;
+        speechContent.textContent = '';
+
+        // Сброс параметров калькулятора
+        document.getElementById('mitigating-no').checked = true;
+        document.getElementById('aggravating-no').checked = true;
+        document.getElementById('minor-no').checked = true;
+        document.getElementById('agreement-no').checked = true;
+        document.getElementById('stage-select').value = 'completed';
+    });
+}
+
+// ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+
 function showLoader(text) {
     loaderText.textContent = text;
     loader.classList.remove('hidden');
@@ -293,5 +432,8 @@ function showToast(message) {
     setTimeout(() => toast.remove(), 3000);
 }
 
-// Инициализация при загрузке
-document.addEventListener('DOMContentLoaded', initMockData);
+// ========== ИНИЦИАЛИЗАЦИЯ ==========
+
+document.addEventListener('DOMContentLoaded', () => {
+    initMockData();
+});

@@ -6,76 +6,231 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Генератор речи гособвинителя</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="icon" href="{% static 'images/emblem.svg' %}" type="image/svg+xml">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>⚖️ Генератор речи гособвинителя</h1>
-            <p class="subtitle">На основе обвинительного акта</p>
-        </header>
+    <div class="app-layout">
+        <!-- Боковое меню -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="{% static 'images/emblem.svg' %}" alt="Герб" class="emblem">
+                <div class="sidebar-title">
+                    <span>Прокуратура</span>
+                    <small>Республики Казахстан</small>
+                </div>
+            </div>
 
-        <main>
-            <!-- Шаг 1: Загрузка файла -->
-            <section id="upload-section" class="card">
-                <h2>📄 Загрузите обвинительный акт</h2>
-                <div class="upload-area" id="upload-area">
-                    <input type="file" id="file-input" accept=".txt" hidden>
-                    <div class="upload-content">
-                        <span class="upload-icon">📁</span>
-                        <p>Перетащите файл сюда или <span class="link">выберите</span></p>
-                        <small>Поддерживается формат .txt</small>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="generator">
+                    <span class="nav-icon">📝</span>
+                    <span>Генератор речи</span>
+                </a>
+                <a href="#" class="nav-item" data-section="normative">
+                    <span class="nav-icon">📚</span>
+                    <span>НП Верховного суда</span>
+                    <span class="badge">4</span>
+                </a>
+                <a href="#" class="nav-item" data-section="verdicts">
+                    <span class="nav-icon">⚖️</span>
+                    <span>Приговоры</span>
+                    <span class="badge">3</span>
+                </a>
+                <a href="#" class="nav-item" data-section="private">
+                    <span class="nav-icon">📋</span>
+                    <span>Частные постановления</span>
+                    <span class="badge">2</span>
+                </a>
+                <a href="#" class="nav-item" data-section="acquittals">
+                    <span class="nav-icon">✅</span>
+                    <span>Оправдательные</span>
+                    <span class="badge">2</span>
+                </a>
+                <a href="#" class="nav-item" data-section="returns">
+                    <span class="nav-icon">↩️</span>
+                    <span>Возвраты дел</span>
+                    <span class="badge">3</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <small>© 2024 Органы прокуратуры РК</small>
+            </div>
+        </aside>
+
+        <!-- Основной контент -->
+        <main class="main-content">
+            <!-- Секция: Генератор речи -->
+            <section id="section-generator" class="content-section active">
+                <header class="section-header">
+                    <h1>Генератор речи гособвинителя</h1>
+                    <p>Автоматическое формирование обвинительной речи на основе обвинительного акта</p>
+                </header>
+
+                <!-- Загрузка файла -->
+                <div id="upload-section" class="card">
+                    <h2>📄 Загрузите обвинительный акт</h2>
+                    <div class="upload-area" id="upload-area">
+                        <input type="file" id="file-input" accept=".txt" hidden>
+                        <div class="upload-content">
+                            <span class="upload-icon">📁</span>
+                            <p>Перетащите файл сюда или <span class="link">выберите</span></p>
+                            <small>Поддерживается формат .txt</small>
+                        </div>
+                    </div>
+                    <div id="file-name" class="file-name hidden"></div>
+                </div>
+
+                <!-- Извлеченная информация -->
+                <div id="info-section" class="card hidden">
+                    <h2>📊 Извлеченная информация</h2>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>ФИО</label>
+                            <span id="info-fio">—</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Дата</label>
+                            <span id="info-date">—</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Статья</label>
+                            <span id="info-article">—</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Судимости</label>
+                            <span id="info-convictions">—</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Ущерб</label>
+                            <span id="info-damage">—</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Смягчающие</label>
+                            <span id="info-mitigating">—</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Отягчающие</label>
+                            <span id="info-aggravating">—</span>
+                        </div>
+                        <div class="info-item full-width">
+                            <label>Обстоятельства</label>
+                            <span id="info-circumstances">—</span>
+                        </div>
+                    </div>
+                    <button id="generate-btn" class="btn primary">🎤 Сгенерировать речь</button>
+                </div>
+
+                <!-- Результат -->
+                <div id="result-section" class="card hidden">
+                    <h2>📜 Обвинительная речь</h2>
+                    <div id="speech-content" class="speech-content"></div>
+                    <div class="actions">
+                        <button id="copy-btn" class="btn secondary">📋 Копировать</button>
+                        <button id="new-btn" class="btn outline">🔄 Новый документ</button>
                     </div>
                 </div>
-                <div id="file-name" class="file-name hidden"></div>
             </section>
 
-            <!-- Шаг 2: Извлеченная информация -->
-            <section id="info-section" class="card hidden">
-                <h2>📊 Извлеченная информация</h2>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <label>ФИО</label>
-                        <span id="info-fio">—</span>
-                    </div>
-                    <div class="info-item">
-                        <label>Дата</label>
-                        <span id="info-date">—</span>
-                    </div>
-                    <div class="info-item">
-                        <label>Статья</label>
-                        <span id="info-article">—</span>
-                    </div>
-                    <div class="info-item">
-                        <label>Судимости</label>
-                        <span id="info-convictions">—</span>
-                    </div>
-                    <div class="info-item">
-                        <label>Ущерб</label>
-                        <span id="info-damage">—</span>
-                    </div>
-                    <div class="info-item">
-                        <label>Смягчающие</label>
-                        <span id="info-mitigating">—</span>
-                    </div>
-                    <div class="info-item">
-                        <label>Отягчающие</label>
-                        <span id="info-aggravating">—</span>
-                    </div>
-                    <div class="info-item full-width">
-                        <label>Обстоятельства</label>
-                        <span id="info-circumstances">—</span>
-                    </div>
+            <!-- Секция: НП Верховного суда -->
+            <section id="section-normative" class="content-section">
+                <header class="section-header">
+                    <h1>Нормативные постановления Верховного суда</h1>
+                    <p>Разъяснения по применению уголовного законодательства</p>
+                </header>
+
+                <div class="documents-grid" id="normative-list">
+                    <!-- Заполняется из JS -->
                 </div>
-                <button id="generate-btn" class="btn primary">🎤 Сгенерировать речь</button>
             </section>
 
-            <!-- Шаг 3: Результат -->
-            <section id="result-section" class="card hidden">
-                <h2>📜 Обвинительная речь</h2>
-                <div id="speech-content" class="speech-content"></div>
-                <div class="actions">
-                    <button id="copy-btn" class="btn secondary">📋 Копировать</button>
-                    <button id="new-btn" class="btn outline">🔄 Новый документ</button>
+            <!-- Секция: Приговоры -->
+            <section id="section-verdicts" class="content-section">
+                <header class="section-header">
+                    <h1>Обвинительные приговоры</h1>
+                    <p>База судебных решений для анализа практики</p>
+                </header>
+
+                <div class="table-container">
+                    <table class="data-table" id="verdicts-table">
+                        <thead>
+                            <tr>
+                                <th>№ дела</th>
+                                <th>Дата</th>
+                                <th>Суд</th>
+                                <th>Подсудимый</th>
+                                <th>Статья</th>
+                                <th>Приговор</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Заполняется из JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Секция: Частные постановления -->
+            <section id="section-private" class="content-section">
+                <header class="section-header">
+                    <h1>Частные постановления</h1>
+                    <p>Судебные акты о выявленных нарушениях</p>
+                </header>
+
+                <div class="documents-grid" id="private-list">
+                    <!-- Заполняется из JS -->
+                </div>
+            </section>
+
+            <!-- Секция: Оправдательные приговоры -->
+            <section id="section-acquittals" class="content-section">
+                <header class="section-header">
+                    <h1>Оправдательные приговоры</h1>
+                    <p>Анализ причин вынесения оправдательных приговоров</p>
+                </header>
+
+                <div class="table-container">
+                    <table class="data-table" id="acquittals-table">
+                        <thead>
+                            <tr>
+                                <th>№ дела</th>
+                                <th>Дата</th>
+                                <th>Суд</th>
+                                <th>Подсудимый</th>
+                                <th>Статья</th>
+                                <th>Основание</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Заполняется из JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Секция: Возвраты дел -->
+            <section id="section-returns" class="content-section">
+                <header class="section-header">
+                    <h1>Возвраты уголовных дел</h1>
+                    <p>Дела, возвращенные судом для устранения недостатков</p>
+                </header>
+
+                <div class="table-container">
+                    <table class="data-table" id="returns-table">
+                        <thead>
+                            <tr>
+                                <th>№ дела</th>
+                                <th>Дата</th>
+                                <th>Суд</th>
+                                <th>Статья</th>
+                                <th>Причина возврата</th>
+                                <th>Недостатки</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Заполняется из JS -->
+                        </tbody>
+                    </table>
                 </div>
             </section>
 
@@ -85,10 +240,6 @@
                 <p id="loader-text">Обработка...</p>
             </div>
         </main>
-
-        <footer>
-            <p>Создано для юридических специалистов Казахстана</p>
-        </footer>
     </div>
 
     <script>
